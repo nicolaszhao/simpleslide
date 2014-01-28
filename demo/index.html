@@ -13,12 +13,16 @@
 			#footer { padding: 15px 0; }
 			#footer { color: #999; }
 			
+			#simpleslide { padding: 5px; border: solid 1px #ccc; }
+			#simpleslide .simpleslide-item { width: 50px; height: 50px; margin: 5px; font-size: 22px; line-height: 50px; text-align: center; border: solid 1px #ccc; background: #f1f1f1; }
+			#simpleslide .simpleslide-prev,
+			#simpleslide .simpleslide-next { color: #666; }
 		</style>
 		<script src="../libs/jquery-loader.js"></script>
 		<script src="../src/jquery.simpleslide.js"></script>
 		<script>
 			$(function() {
-				
+				$('#simpleslide').simpleslide();
 			});
 		</script>
 	</head>
@@ -28,7 +32,17 @@
 				<h1>jQuery Plugin - Simple Slideshow - Demo</h1>
 			</div>
 			<div id="content">
-				
+				<div id="simpleslide">
+					<div class="simpleslide-item">1</div>
+					<div class="simpleslide-item">2</div>
+					<div class="simpleslide-item">3</div>
+					<div class="simpleslide-item">4</div>
+					<div class="simpleslide-item">5</div>
+					<div class="simpleslide-item">6</div>
+					<div class="simpleslide-item">7</div>
+					<div class="simpleslide-item">8</div>
+					<div class="simpleslide-item">9</div>
+				</div>
 			</div>
 			<div id="footer">
 				<p>&copy; Copyright  by Nicolas.Z</p>
