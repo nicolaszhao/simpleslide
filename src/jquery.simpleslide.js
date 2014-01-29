@@ -181,7 +181,7 @@
 				len = this._length, 
 				visible = this._options.visible, 
 				scroll = this._options.scroll,
-				index;
+				index, size;
 
 			if (this._running) {
 				return;
@@ -189,7 +189,10 @@
 			
 			if (this._options.circular) {
 				
-				// 确认下一个幻灯的显示数量是否有缺少项
+				// If the next slide items number is less than the default visible number,
+				// slide needs to be respositioned to the beginning or end position.
+				// Assuming visible is 3, the original slide items numbers is 9, then the resulting slideshow is: [789]123456789[123].
+				// Therefore, the number of the beginning and end of the slide can be calculated as: visible * 2.
 				if (to + visible > len || to + visible < visible) {
 					if (to + visible > len) {
 						index = visible * 2 - (len - this._current);
@@ -202,12 +205,14 @@
 					this.$container.css(this._direction, -(this._calcSize(index)));
 				}
 			} else {
-				if (to + scroll == 0 || to - scroll + visible == len) {
+				if (to + scroll === 0 || to - scroll + visible === len) {
 					return;
 				}
-				if (len - to < visible) {
+				
+				if (to + visible > len) {
 					to = len - visible;
 				}
+				
 				if (to < 0) {
 					to = 0;
 				}
@@ -215,13 +220,16 @@
 
 			this._current = to;
 			this._running = true;
-			this.$container.animate(this._options.vertical ? {
-				top: -(this._calcSize(to, true))
-			} : {
-				left: -(this._calcSize(to, true))
-			}, this._options.duration, this._options.easing, function() {
-				that._running = false;
-			});
+			
+			size = -(this._calcSize(to, true));
+			this.$container.animate(this._options.vertical ? 
+					{top: size} : 
+					{left: size}, 
+				this._options.duration,
+				this._options.easing,
+				function() {
+					that._running = false;
+				});
 		},
 
 		toNext: function() {
