@@ -20,169 +20,195 @@
 		visible: 3,
 		scroll: 1,
 		duration: 800,
-		auto: 0,
+		auto: true,
 		circular: true,
 		vertical: false,
 		prev: null,
 		next: null,
 		showButtons: true,
+		buttonOffset: 0.6,
 		easing: null,
-		start: 0
+		start: 0,
+		extra: 0.5,
+		
+		// callbacks
+		beforeSlide: null,
 	};
 	
 	$.fn.simpleslide.Slide = function(target, options) {
 		this._$target = $(target);
 		this._options = this._adjustOptions(options);
-
-		
-		this.$slide = this._$target.wrapInner('<div class="simpleslide" />').find('.simpleslide');
-		this.$container = this.$slide.wrapInner('<div class="simpleslide-container">').find('.simpleslide-container');
-		this.$items = this._getItems();
-
-		this.itemWidth = this.$items.outerWidth(true);
-		this.itemHeight = this.$items.outerHeight(true);
-		
-		this._length = this.$items.length < this._options.visible ? this._options.visible : this.$items.length;
-
+		this._extra = Math.ceil(this._options.extra);
 		this._direction = this._options.vertical ? 'top' : 'left';
-		this._current = this._options.circular ? this._options.visible : 0;
-		this._current = this._current + this._options.start;
-		if (!this._options.circular && (this._current + this._options.visible > this._length)) {
-			this._current = this._length - this._options.visible;
-		}
+		this._current = 0;
+		this._forward = false;
+		this._timer = null;
 		
-		this.autoTimeId = null;
+		this._$container = this._$target.wrapInner('<div class="simpleslide" />').find('.simpleslide');
+		this._$slide = this._$container.wrapInner('<div class="simpleslide-wrapper">').find('.simpleslide-wrapper');
+		this._$items = this._getItems();
+		this._itemWidth = this._$items.outerWidth(true);
+		this._itemHeight = this._$items.outerHeight(true);
+		this._length = this._$items.length;		
 
-		this._setStyle();
-		this._createButton();
-		if (this._options.auto) {
-			this._auto();
-			this.stopSlide();
-		}
+		this._create();
 	};
 
 	$.fn.simpleslide.Slide.prototype = {
 		constructor: $.fn.simpleslide.Slide,
 		
+		_create: function() {
+			var propWidth = this._options.vertical ? 'height' : 'width',
+				propHeight = this._options.vertical ? 'width' : 'height',
+				that = this;
+			
+			this._current = this._options.start + (this._options.circular ? this._options.visible + this._extra : 0);
+			if (!this._options.circular && (this._current + this._options.visible > this._length)) {
+				this._current = this._length - this._options.visible;
+			}
+			
+			this._extraWidth = Math.floor((this._options.vertical ? this._itemHeight : this._itemWidth) * this._options.extra);
+			
+			this._$items.css({
+				width: this._$items.width(),
+				height: this._$items.height(),
+				overflow: 'hidden',
+				'float': 'left'
+			});
+
+			this._$slide
+				.css({position: 'absolute', 'z-index': 1})
+				.css(propWidth, this._calcSize(this._length, false))
+				.css(this._direction, -this._calcSize(this._current));
+
+			this._$container
+				.css({position: 'relative', 'z-index': 2, overflow: 'hidden'})
+				.css(propWidth, this._calcSize(this._options.visible, false) + (this._options.circular ? 
+								2 : 
+								(this._length > this._options.visible ? 1 : 0)) * 
+								this._extraWidth)
+								
+				.css(propHeight, this._options.vertical ? this._itemWidth : this._itemHeight);
+
+			this._$target.css({
+				width: this._options.vertical ? this._itemWidth : this._$container.width(),
+				position: 'relative'
+			}).on('mouseenter.simpleslide', function() {
+				that.stop();
+			}).bind('mouseleave.simpleslide', function() {
+				that.repeat();
+			});
+			
+			if (this._options.showButtons) {
+				this._generateButtons();
+			}
+			
+			if (this._options.auto) {
+				this.repeat();
+			}
+		},
+		
 		_adjustOptions: function(options) {
-			var len = this._$target.children().length,
-				scroll = Math.abs(options.scroll),
-				visible = options.visible;
+			var len = this._$target.children().length;
 				
-			options.visible = len < visible ? len : visible;
-			options.scroll = scroll > visible ? visible : scroll;
+			if (len < options.visible) {
+				options.visible = len;
+			} 
+			
+			if (options.scroll > options.visible) {
+				options.scroll = options.visible;
+			}
+			
+			if (!(options.extra > 0 && options.extra < 1)) {
+				options.extra = 0;
+			}
 			
 			return options;
 		},
 		
 		_getItems: function() {
-			var $items = this.$container.children(), len = $items.length, v = this._options.visible;
+			var $items = this._$slide.children(), 
+				visible = this._options.visible,
+				len = $items.length,
+				extra = (len > visible ? this._extra : 0);
 
 			if (this._options.circular) {
-				this.$container.prepend($items.slice(len - v).clone()).append($items.slice(0, v).clone());
+				this._$slide.prepend($items.slice(len - visible - extra).clone())
+					.append($items.slice(0, visible + extra).clone());
+				
+				if (len <= visible && this._extra !== 0) {
+					this._$slide.prepend($items.slice(len - 1).clone())
+						.append($items.slice(0, 1).clone());
+				}
 
-				$items = this.$container.children();
+				$items = this._$slide.children();
 			}
 
 			return $items;
 		},
-		_getMergedMargin: function(length, isAnim) {
-			var margin = 0;
-
-			if (this._options.vertical && length) {
-				length = isAnim ? length : length - 1;
-				margin = Math.min(parseInt(this.$items.css('margin-top')), parseInt(this.$items.css('margin-bottom')));
-				margin = margin * length;
-			}
-
-			return margin;
+		
+		_calcSize: function(count, isPos) {
+			var size = this._options.vertical ? this._itemHeight : this._itemWidth,
+				extraWidth;
+			
+			isPos = typeof isPos === 'boolean' ? isPos : true;
+			extraWidth = (isPos && (this._options.circular || 
+					(this._forward && count + this._options.visible === this._length) ||
+					(!this._forward && count !== 0)) ? this._extraWidth : 0);
+			
+			return size * count - extraWidth;
 		},
-		_calcSize: function(length, isAnim) {
-			var itemSize = this._options.vertical ? this.itemHeight : this.itemWidth;
-			return itemSize * length - this._getMergedMargin(length, isAnim);
-		},
-		_setStyle: function() {
-			var sizeCss = this._options.vertical ? 'height' : 'width';
-
-			this.$items.css({
-				overflow: 'hidden',
-				width: this.$items.width(),
-				height: this.$items.height(),
-				'float': this._options.vertical ? 'none' : 'left'
+		
+		_generateButtons: function() {
+			var vertical = this._options.vertical, 
+				offset = this._options.buttonOffset, 
+				that = this, 
+				$target = this._$target.prepend('<a class="simpleslide-button simpleslide-prev" href="">Prev</a>' + 
+					'<a class="simpleslide-button simpleslide-next" href="">Next</a>')
+					.find('.simpleslide-button').css({position: 'absolute', 'z-index': 3})
+					.end()
+					.on('click.simpleslide', '.simpleslide-prev', function(event) {
+						that.prev();
+						event.preventDefault();
+					})
+					.on('click.simpleslide', '.simpleslide-next', function(event) {
+						that.next();
+						event.preventDefault();
+					}),
+					
+				$prev = $target.find('.simpleslide-prev'), $next = $target.find('.simpleslide-next'), 
+				prevWidth = $prev.outerWidth(), prevHeight = $prev.outerHeight(), 
+				nextWidth = $next.outerWidth(), nextHeight = $next.outerHeight(), 
+				containerWidth = $target.innerWidth(), containerHeight = $target.innerHeight();
+			
+			$prev.css({
+				top: vertical ? -prevHeight * offset : (containerHeight - prevHeight) / 2,
+				left: vertical ? (containerWidth - prevWidth) / 2 : -prevWidth * offset
 			});
-
-			this.$container.css({
-				position: 'relative',
-				'z-index': 1
-			}).css(sizeCss, this._calcSize(this._length)).css(this._direction, -(this._calcSize(this._current, true)));
-
-			this.$slide.css({
-				position: 'relative',
-				overflow: 'hidden',
-				'z-index': 2
-			}).css(sizeCss, this._calcSize(this._options.visible));
-
-			this._$target.css({
-				width: this._options.vertical ? this.itemWidth : this.$slide.width(),
-				position: 'relative'
+			
+			$next.css({
+				top: vertical ? containerHeight - nextHeight * (1 - offset) : (containerHeight - nextHeight) / 2,
+				left: vertical ? (containerWidth - nextWidth) / 2 : containerWidth - nextWidth * (1 - offset)
 			});
-		},
-		_createButton: function() {
-			var slide = this, vertical = this._options.vertical, $target = this._$target, $prev, $next;
-
-			if (!this._options.auto) {
-				$target.prepend('<a class="simpleslide-prev" href="">Prev</a>')
-					.append('<a class="simpleslide-next" href="">Next</a>');
-
-				$prev = $target.find('.simpleslide-prev');
-				$next = $target.find('.simpleslide-next');
-
-				//$prev.add($next).css('position', 'absolute');
-
-				$prev.css({
-					top: vertical ? -$prev.outerHeight() : ($target.innerHeight() - $prev.outerHeight() ) / 2,
-					left: vertical ? ($target.innerWidth() - $prev.outerWidth() ) / 2 : -$prev.outerWidth()
-				});
-
-				if (vertical) {
-					$next.css({
-						bottom: -$next.outerHeight(),
-						left: ($target.innerWidth() - $next.outerWidth() ) / 2
-					});
-				} else {
-					$next.css({
-						top: ($target.innerHeight() - $next.outerHeight() ) / 2,
-						right: -$next.outerWidth()
-					});
-				}
-
-				$next.bind('click.simpleslide', function(e) {
-					e.preventDefault();
-					slide.toNext();
-				});
-
-				$prev.bind('click.simpleslide', function(e) {
-					e.preventDefault();
-					slide.toPrevious();
-				});
-			}
-		},
-		_auto: function() {
-			var slide = this;
-			this.autoTimeId = setTimeout(function() {
-				slide.toNext();
-				slide.autoTimeId = setTimeout(arguments.callee, slide._options.auto + slide._options.duration);
-			}, this._options.auto);
 		},
 		
 		_run: function(to) {
 			var that = this, 
 				len = this._length, 
 				visible = this._options.visible, 
-				scroll = this._options.scroll,
-				index, size;
+				scroll = this._options.scroll, 
+				callback = this._options.beforeSlide, 
+				index, size,
+				
+				generateData = function() {
+					var data = {};
+					return this._$items.slice(this._current).slice(0, visible);
+					return {
+						items: this._$items.slice(this._current).slice(0, visible)
+					};
+				};
 			
-			this.$container.finish();
+			this._$slide.finish();
 			
 			if (this._options.circular) {
 				
@@ -190,16 +216,16 @@
 				// slide needs to be respositioned to the beginning or end position.
 				// Assuming visible is 3, the original slide items numbers is 9, then the resulting slideshow is: [789]123456789[123].
 				// Therefore, the number of the beginning and end of the slide can be calculated as: visible * 2.
-				if (to + visible > len || to + visible < visible) {
-					if (to + visible > len) {
-						index = visible * 2 - (len - this._current);
+				if (to + visible + this._extra > len || to + visible - this._extra < visible) {
+					if (to + visible + this._extra > len) {
+						index = (visible + this._extra) * 2 - (len - this._current);
 						to = index + scroll;
 					} else {
-						index = (len - visible * 2) + this._current;
+						index = (len - (visible + this._extra) * 2) + this._current;
 						to = index - scroll;
 					}
 					
-					this.$container.css(this._direction, -(this._calcSize(index)));
+					this._$slide.css(this._direction, -this._calcSize(index));
 				}
 			} else {
 				if (to + scroll === 0 || to - scroll + visible === len) {
@@ -214,9 +240,16 @@
 					to = 0;
 				}
 			}
-
-			size = -(this._calcSize(to, true));
-			this.$container.animate(this._options.vertical ? 
+			
+			if ($.type(callback) === 'function') {
+				callback.call(this._$target, {
+					oldItems: this._$items.slice(this._current).slice(0, visible),
+					newItems: this._$items.slice(to).slice(0, visible)
+				});
+			}
+			
+			size = -this._calcSize(to);
+			this._$slide.animate(this._options.vertical ? 
 					{top: size} : 
 					{left: size}, 
 				this._options.duration,
@@ -224,23 +257,35 @@
 			
 			this._current = to;
 		},
-
-		toNext: function() {
+		
+		next: function() {
+			this._forward = true;
 			this._run(this._current + this._options.scroll);
 		},
 		
-		toPrevious: function() {
+		prev: function() {
+			this._forward = false;
 			this._run(this._current - this._options.scroll);
 		},
 		
-		stopSlide: function() {
-			var slide = this;
-
-			this._$target.bind('mouseenter', function() {
-				clearTimeout(slide.autoTimeId);
-			}).bind('mouseleave', function() {
-				slide._auto();
-			});
+		repeat: function(speed) {
+			if (!this._options.auto) {
+				return;
+			}
+			
+			var that = this,
+				defaultSpeed = 2000;
+			
+			speed = speed || defaultSpeed;
+			
+			this._timer = setTimeout(function() {
+				that.next();
+				that.repeat((that._options.auto === true ? defaultSpeed : that._options.auto) + that._options.duration);
+			}, speed);
+		},
+		
+		stop: function() {
+			clearTimeout(this._timer);
 		}
 	};
 
