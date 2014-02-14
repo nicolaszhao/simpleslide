@@ -7,6 +7,13 @@
 		<script src="../libs/jquery-loader.js"></script>
 		<!-- Load local QUnit. -->
 		<link rel="stylesheet" href="../libs/qunit/qunit.css" media="screen">
+		<style>
+			#simpleslide { padding: 5px; border: solid 1px #ccc; }
+			#simpleslide .simpleslide-item { width: 50px; height: 60px; margin: 5px; font-size: 22px; line-height: 50px; text-align: center; border: solid 1px #ccc; background: #f1f1f1; }
+			#simpleslide .simpleslide-prev,
+			#simpleslide .simpleslide-next { color: #666; }
+		</style>
+		
 		<script src="../libs/qunit/qunit.js"></script>
 		<!-- Load local lib and tests. -->
 		<script src="../src/jquery.simpleslide.js"></script>
@@ -21,6 +28,12 @@
 	<body>
 		<div id="qunit"></div>
 		<div id="qunit-fixture">
+			<div id="simpleslide">
+				<div>1</div>
+				<div>2</div>
+				<div>3</div>
+				<div>4</div>
+			</div>
 		</div>
 	</body>
 </html>
