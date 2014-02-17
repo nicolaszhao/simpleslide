@@ -2,8 +2,6 @@
 
 A simple slideshow jQuery plugin, practical, flexible, supporting both horizontal and vertical scrolling.
 
-![Simpleslide](https://github.com/nicolaszhao/simpleslide/blob/master/simpleslide.png)
-
 **Current version:** [1.0.0](https://github.com/nicolaszhao/simpleslide/archive/v1.0.0.tar.gz)
 
 ## Usage
