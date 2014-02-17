@@ -112,7 +112,7 @@ Set one or more options for the simpleslide.
 **Code example:**
 	
 	$('#simpleslide').simpleslide('option', {'visible': 4});
-	
+
 ***
 
 **next()**   
@@ -122,7 +122,7 @@ This method is used to manually navigate to the next slide.
 **Code example:**
 	
 	$('#simpleslide').simpleslide('next');
-	
+
 ***
 
 **prev()**   
@@ -132,7 +132,7 @@ This method is used to manually navigate to the previous slide.
 **Code example:**
 	
 	$('#simpleslide').simpleslide('prev');
-	
+
 ***
 
 **repeat()**   
@@ -142,7 +142,7 @@ When the `auto` option is true, and manually run the `.stop()` method, you can m
 **Code example:**
 	
 	$('#simpleslide').simpleslide('repeat');
-	
+
 ***
 
 **stop()**   
@@ -163,8 +163,8 @@ Triggered the callback before scroll to the next slide.
 		Type: jQuery   
 		The elements representing the items that are visible before the transition.
 	
-	* **newItems**
-		Type: jQuery
+	* **newItems**    
+		Type: jQuery    
 		The elements representing the items that are visible after the transition.
 		
 ## Theming
