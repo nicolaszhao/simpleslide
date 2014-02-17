@@ -45,7 +45,7 @@
 		prev: null,
 		next: null,
 		showButtons: true,
-		buttonOffset: 0.6,
+		buttonOffset: 0.5,
 		easing: null,
 		start: 0,
 		extra: 0.5,
