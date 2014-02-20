@@ -9,7 +9,7 @@
 	module('simpleslide: options');
 	
 	test('visible', function() {
-		var $slide = $('#simpleslide').simpleslide({extra: 0});
+		var $slide = $('#simpleslide').simpleslide({extra: 0}),
 			itemWidth = $slide.find('.simpleslide-item').outerWidth(true);
 		
 		equal($slide.width(), itemWidth * 3, 'the default display three items');
@@ -35,13 +35,14 @@
 	});
 	
 	asyncTest('auto: true', function() {
-		var $items = null,
-			$slide = $('#simpleslide').simpleslide({
-				auto: true,
-				beforeSlide: function(slide) {
-					$items = slide.newItems; 
-				}
-			});
+		var $items = null;
+		
+		$('#simpleslide').simpleslide({
+			auto: true,
+			beforeSlide: function(slide) {
+				$items = slide.newItems; 
+			}
+		});
 		
 		setTimeout(function() {
 			var ret = getVisibleItemsText($items);
@@ -52,13 +53,14 @@
 	});
 	
 	asyncTest('auto: 1000', function() {
-		var $items = null,
-			$slide = $('#simpleslide').simpleslide({
-				auto: 1000,
-				beforeSlide: function(slide) {
-					$items = slide.newItems; 
-				}
-			});
+		var $items = null;
+		
+		$('#simpleslide').simpleslide({
+			auto: 1000,
+			beforeSlide: function(slide) {
+				$items = slide.newItems; 
+			}
+		});
 			
 		setTimeout(function() {
 			var ret = getVisibleItemsText($items);

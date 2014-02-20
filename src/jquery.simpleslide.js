@@ -76,14 +76,12 @@
 		constructor: $.fn.simpleslide.Slide,
 		
 		_create: function() {
-			var that = this;
-			
 			this._$target
 				.data('simpleslide-original-html', this._$target.html())
 				.on('mouseenter.simpleslide', $.proxy(this.stop, this))
 				.on('mouseleave.simpleslide', $.proxy(this.repeat, this))
 				.on('click.simpleslide', '.simpleslide-prev', $.proxy(this.prev, this))
-				.on('click.simpleslide', '.simpleslide-next', $.proxy(this.next, this)),
+				.on('click.simpleslide', '.simpleslide-next', $.proxy(this.next, this));
 			
 			this._refresh();
 		},
@@ -145,7 +143,6 @@
 		_generateButtons: function() {
 			var vertical = this._options.vertical, 
 				offset = this._options.buttonOffset, 
-				that = this, 
 				$target = this._$target.prepend('<a class="simpleslide-button simpleslide-prev" href="">Prev</a>' + 
 					'<a class="simpleslide-button simpleslide-next" href="">Next</a>')
 					.find('.simpleslide-button').css({position: 'absolute', 'z-index': 3}).end(),
@@ -167,8 +164,7 @@
 		},
 		
 		_run: function(to) {
-			var that = this, 
-				len = this._length, 
+			var len = this._length, 
 				visible = this._options.visible, 
 				scroll = this._options.scroll, 
 				callback = this._options.beforeSlide, 
