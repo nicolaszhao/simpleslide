@@ -51,7 +51,7 @@
 		extra: 0.5,
 		
 		// callbacks
-		beforeSlide: null,
+		beforeSlide: null
 	};
 	
 	$.fn.simpleslide.Slide = function(target, options) {
