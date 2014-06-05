@@ -2,7 +2,7 @@
   "name": "simpleslide",
   "title": "Simple slideshow",
   "description": "A simple slideshow jQuery plugin, practical, flexible, supporting both horizontal and vertical scrolling.",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "homepage": "https://github.com/nicolaszhao/simpleslide",
   "author": {
     "name": "Nicolas Zhao",
