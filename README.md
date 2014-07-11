@@ -2,7 +2,7 @@
 
 A simple slideshow jQuery plugin, practical, flexible, supporting both horizontal and vertical scrolling.
 
-**Current version:** [1.0.1](https://github.com/nicolaszhao/simpleslide/archive/v1.0.1.tar.gz)
+**Current version:** [1.1.1](https://github.com/nicolaszhao/simpleslide/archive/v1.1.1.tar.gz)
 
 ## Usage
 Include jQuery and the plugin on your page. Then select an element containing multiple sub-items and call the simpleslide method on DOM ready.
