@@ -309,6 +309,11 @@
 			return false;
 		},
 		
+		go: function(index) {
+			index = this._options.circular ? this._options.visible + index + this._extra : index;
+			this._run(index);
+		},
+		
 		repeat: function(speed) {
 			if (!this._options.auto) {
 				return;
