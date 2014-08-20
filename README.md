@@ -151,10 +151,10 @@ When the `auto` option is true, you can manually execute the method to stop the 
 	
 	$('#simpleslide').simpleslide('stop');
 	
-**refresh()** 
+**refresh()**    
 如果 slide 是百分比宽高，在改变容器大小时，比如 window.onresize 时可以调用 refresh 方法重新设置 slide 各元素的尺寸
 
-**go( index )** 
+**go( index )**    
 可以通过该方法将 slide 滚动到指定 index 的单元
 
 **Code example:**
