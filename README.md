@@ -2,7 +2,7 @@
 
 A simple slideshow jQuery plugin, practical, flexible, supporting both horizontal and vertical scrolling.
 
-**Current version:** [1.1.1](https://github.com/nicolaszhao/simpleslide/archive/v1.1.1.tar.gz)
+**Current version:** [1.2.0](https://github.com/nicolaszhao/simpleslide/archive/v1.2.0.tar.gz)
 
 ## Usage
 Include jQuery and the plugin on your page. Then select an element containing multiple sub-items and call the simpleslide method on DOM ready.
@@ -150,6 +150,16 @@ When the `auto` option is true, you can manually execute the method to stop the 
 **Code example:**
 	
 	$('#simpleslide').simpleslide('stop');
+	
+**refresh()** 
+如果 slide 是百分比宽高，在改变容器大小时，比如 window.onresize 时可以调用 refresh 方法重新设置 slide 各元素的尺寸
+
+**go( index )** 
+可以通过该方法将 slide 滚动到指定 index 的单元
+
+**Code example:**
+	
+	$('#simpleslide').simpleslide('go', 3);
 	
 ## Callbacks
 **beforeSlide( slide )**  
