@@ -76,10 +76,14 @@
 		constructor: $.fn.simpleslide.Slide,
 		
 		_create: function() {
+			var that = this;
+			
 			this._$target
 				.data('simpleslide-original-html', this._$target.html())
 				.on('mouseenter.simpleslide', $.proxy(this.stop, this))
-				.on('mouseleave.simpleslide', $.proxy(this.repeat, this))
+				.on('mouseleave.simpleslide', function() {
+					that.repeat();
+				})
 				.on('click.simpleslide', '.simpleslide-prev', $.proxy(this.prev, this))
 				.on('click.simpleslide', '.simpleslide-next', $.proxy(this.next, this));
 			
@@ -163,7 +167,7 @@
 			});
 		},
 		
-		_run: function(to) {
+		_run: function(to, duration) {
 			var len = this._length, 
 				visible = this._options.visible, 
 				scroll = this._options.scroll, 
@@ -214,7 +218,7 @@
 			this._$slide.animate(this._options.vertical ? 
 					{top: size} : 
 					{left: size}, 
-				this._options.duration,
+				(typeof duration === 'number' ? duration : this._options.duration),
 				this._options.easing);
 			
 			this._current = to;
@@ -222,18 +226,23 @@
 		
 		_refresh: function() {
 			var propWidth = this._options.vertical ? 'height' : 'width',
-				propHeight = this._options.vertical ? 'width' : 'height';
+				propHeight = this._options.vertical ? 'width' : 'height',
+				originalItems = this._$target.children(),
+				innerWidth, innerHeight;
 				
 			this._extra = Math.ceil(this._options.extra);
 			this._direction = this._options.vertical ? 'top' : 'left';
-			this._current = 0;
 			this._forward = false;
+			this._itemWidth = originalItems.outerWidth(true);
+			this._itemHeight = originalItems.outerHeight(true);
+			
+			innerWidth = originalItems.width();
+			innerHeight = originalItems.height();
 			
 			this._$container = this._$target.wrapInner('<div class="simpleslide-container" />').find('.simpleslide-container');
 			this._$slide = this._$container.wrapInner('<div class="simpleslide-items">').find('.simpleslide-items');
 			this._$items = this._getItems();
-			this._itemWidth = this._$items.outerWidth(true);
-			this._itemHeight = this._$items.outerHeight(true);
+			
 			this._length = this._$items.length;	
 			
 			this._current = this._options.start + (this._options.circular ? this._options.visible + this._extra : 0);
@@ -244,12 +253,12 @@
 			this._extraWidth = Math.floor((this._options.vertical ? this._itemHeight : this._itemWidth) * this._options.extra);
 			
 			this._$items.css({
-				width: this._$items.width(),
-				height: this._$items.height(),
+				width: innerWidth,
+				height: innerHeight,
 				overflow: 'hidden',
 				'float': 'left'
 			});
-
+			
 			this._$slide
 				.css({position: 'absolute', 'z-index': 1})
 				.css(propWidth, this._calcSize(this._length, false))
@@ -263,18 +272,22 @@
 								this._extraWidth)
 								
 				.css(propHeight, this._options.vertical ? this._itemWidth : this._itemHeight);
-
+			
 			this._$target.css({
 				width: this._options.vertical ? this._itemWidth : this._$container.width(),
 				position: 'relative'
 			});
 			
 			if (this._options.prev) {
-				$(this._options.prev).on('click.simpleslide', $.proxy(this.prev, this));
+				$(this._options.prev)
+					.off('click.simpleslide')
+					.on('click.simpleslide', $.proxy(this.prev, this));
 			}
 			
 			if (this._options.next) {
-				$(this._options.next).on('click.simpleslide', $.proxy(this.next, this));
+				$(this._options.next)
+					.off('click.simpleslide')
+					.on('click.simpleslide', $.proxy(this.next, this));
 			}
 			
 			if (this._options.showButtons) {
@@ -286,8 +299,19 @@
 			}
 		},
 		
+		refresh: function() {
+			this._$slide.finish();
+			this.stop();
+			
+			this._$target.attr('style', '').html(this._$target.data('simpleslideOriginalHtml'));
+			this._refresh();
+			
+			this.go(this._current, 0);
+		},
+		
 		option: function(options) {
 			this._$slide.finish();
+			this._current = 0;
 			this.stop();
 			
 			this._$target.html(this._$target.data('simpleslideOriginalHtml'));
@@ -309,9 +333,9 @@
 			return false;
 		},
 		
-		go: function(index) {
+		go: function(index, duration) {
 			index = this._options.circular ? this._options.visible + index + this._extra : index;
-			this._run(index);
+			this._run(index, duration);
 		},
 		
 		repeat: function(speed) {
@@ -324,6 +348,7 @@
 			
 			speed = speed || interval;
 			
+			clearTimeout(this._timer);
 			this._timer = setTimeout(function() {
 				that.next();
 				that.repeat(interval + that._options.duration);
