@@ -174,7 +174,7 @@
 				callback = this._options.beforeSlide, 
 				index, size;
 			
-			this._$slide.finish();
+			this._$slide.stop(true, false);
 			
 			if (this._options.circular) {
 				
